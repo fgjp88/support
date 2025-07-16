@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>텍스트 대량 치환기</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f9f9f9; }
+    textarea { width: 100%; height: 150px; margin-top: 5px; font-family: monospace; }
+    .row { display: flex; gap: 20px; }
+    .column { flex: 1; }
+    button { margin-top: 10px; padding: 10px; font-weight: bold; }
+    #result { white-space: pre-wrap; background: #fff; padding: 10px; border: 1px solid #ccc; }
+  </style>
+</head>
+<body>
+
+  <h2>🔁 대량 텍스트 치환 도구</h2>
+
+  <div class="row">
+    <div class="column">
+      <label>🧾 원본 목록 (줄 단위)</label>
+      <textarea id="originalList" placeholder="https://files.catbox.moe/example1.jpg"></textarea>
+    </div>
+    <div class="column">
+      <label>🖼 대체 목록 (줄 단위)</label>
+      <textarea id="replacementList" placeholder="https://i.postimg.cc/abc123/example1.jpg"></textarea>
+    </div>
+  </div>
+
+  <div style="margin-top: 20px;">
+    <label>📄 변환할 문서 붙여넣기</label>
+    <textarea id="inputText" placeholder="여기에 원본 문서 내용을 붙여넣으세요..."></textarea>
+  </div>
+
+  <button onclick="runReplace()">🔃 변환 실행</button>
+  <button onclick="copyResult()">📋 결과 복사</button>
+
+  <h3>📤 변환 결과</h3>
+  <div id="result">[여기에 결과가 표시됩니다]</div>
+
+  <script>
+    function runReplace() {
+      const original = document.getElementById("originalList").value.trim().split("\n");
+      const replacement = document.getElementById("replacementList").value.trim().split("\n");
+      let text = document.getElementById("inputText").value;
+
+      if (original.length !== replacement.length) {
+        alert("❗ 원본과 대체 목록의 줄 수가 같아야 합니다.");
+        return;
+      }
+
+      for (let i = 0; i < original.length; i++) {
+        const from = original[i].trim();
+        const to = replacement[i].trim();
+        if (!from) continue;
+        const escapedFrom = from.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // 정규식 이스케이프
+        text = text.replace(new RegExp(escapedFrom, "g"), to);
+      }
+
+      document.getElementById("result").textContent = text;
+    }
+
+    function copyResult() {
+      const result = document.getElementById("result").textContent;
+      navigator.clipboard.writeText(result).then(() => {
+        alert("✅ 복사 완료!");
+      }).catch(() => {
+        alert("⚠️ 복사 실패. 수동 복사 해주세요.");
+      });
+    }
+  </script>
+
+</body>
+</html>
