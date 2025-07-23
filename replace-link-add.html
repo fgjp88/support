@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>텍스트 대량 치환기</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f9f9f9; }
+    textarea { width: 100%; height: 150px; margin-top: 5px; font-family: monospace; box-sizing: border-box; }
+    .row { display: flex; gap: 20px; margin-top: 20px; }
+    .column { flex: 1; }
+    button { margin-top: 10px; padding: 10px; font-weight: bold; cursor: pointer; }
+    #result { white-space: pre-wrap; background: #fff; padding: 10px; border: 1px solid #ccc; margin-top: 5px; }
+    .section { margin-top: 20px; }
+    label { font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <h2>🔁 대량 텍스트 치환 도구</h2>
+
+  <!-- 'link:원본=대체' 입력을 위한 새로운 섹션 -->
+  <div class="section">
+    <label for="dictionaryInput">📜 치환 사전 입력 (link:원본=대체 형식)</label>
+    <textarea id="dictionaryInput" placeholder="link:https://files.catbox.moe/example.jpg=https://i.postimg.cc/abc/example.jpg
+alert:안녕하세요=Hello
+...와 같은 형식의 텍스트를 여기에 붙여넣으세요."></textarea>
+    <button onclick="parseDictionary()">👇 입력값 분리</button>
+  </div>
+
+  <div class="row">
+    <div class="column">
+      <label for="originalList">🧾 원본 목록 (줄 단위)</label>
+      <textarea id="originalList" placeholder="https://files.catbox.moe/example1.jpg"></textarea>
+    </div>
+    <div class="column">
+      <label for="replacementList">🖼 대체 목록 (줄 단위)</label>
+      <textarea id="replacementList" placeholder="https://i.postimg.cc/abc123/example1.jpg"></textarea>
+    </div>
+  </div>
+
+  <div class="section">
+    <label for="inputText">📄 변환할 문서 붙여넣기</label>
+    <textarea id="inputText" placeholder="여기에 원본 문서 내용을 붙여넣으세요..."></textarea>
+  </div>
+
+  <button onclick="runReplace()">🔃 변환 실행</button>
+  <button onclick="copyResult()">📋 결과 복사</button>
+
+  <h3>📤 변환 결과</h3>
+  <div id="result">[여기에 결과가 표시됩니다]</div>
+
+  <script>
+    function parseDictionary() {
+      const dictionaryText = document.getElementById("dictionaryInput").value.trim();
+      if (!dictionaryText) {
+        alert("❗ 분리할 내용을 치환 사전 입력 칸에 붙여넣어 주세요.");
+        return;
+      }
+
+      const lines = dictionaryText.split('\n');
+      const originals = [];
+      const replacements = [];
+
+      for (const line of lines) {
+        const trimmedLine = line.trim();
+        if (!trimmedLine) continue;
+
+        const eqIndex = trimmedLine.indexOf('=');
+        if (eqIndex === -1) continue; // '='가 없는 줄은 건너뜁니다.
+
+        let original = trimmedLine.substring(0, eqIndex);
+        const replacement = trimmedLine.substring(eqIndex + 1);
+        
+        // "link:" 또는 다른 접두사와 콜론(:)이 있으면 제거합니다.
+        const colonIndex = original.indexOf(':');
+        if (colonIndex !== -1) {
+          original = original.substring(colonIndex + 1);
+        }
+
+        originals.push(original.trim());
+        replacements.push(replacement.trim());
+      }
+
+      document.getElementById("originalList").value = originals.join('\n');
+      document.getElementById("replacementList").value = replacements.join('\n');
+    }
+
+    function runReplace() {
+      const original = document.getElementById("originalList").value.trim().split("\n");
+      const replacement = document.getElementById("replacementList").value.trim().split("\n");
+      let text = document.getElementById("inputText").value;
+
+      if (original.length !== replacement.length) {
+        alert("❗ 원본과 대체 목록의 줄 수가 같아야 합니다.");
+        return;
+      }
+
+      for (let i = 0; i < original.length; i++) {
+        const from = original[i].trim();
+        const to = replacement[i].trim();
+        if (!from) continue;
+        // 정규식 특수 문자를 이스케이프하여 문자열 그대로 치환합니다.
+        const escapedFrom = from.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); 
+        text = text.replace(new RegExp(escapedFrom, "g"), to);
+      }
+
+      document.getElementById("result").textContent = text;
+    }
+
+    function copyResult() {
+      const result = document.getElementById("result").textContent;
+      if (!result || result === '[여기에 결과가 표시됩니다]') {
+        alert("⚠️ 복사할 결과가 없습니다.");
+        return;
+      }
+      navigator.clipboard.writeText(result).then(() => {
+        alert("✅ 복사 완료!");
+      }).catch(() => {
+        alert("⚠️ 복사 실패. 수동으로 복사해 주세요.");
+      });
+    }
+  </script>
+
+</body>
+</html>
